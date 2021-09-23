@@ -1,0 +1,411 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>Emergency rumor detection</title>
+
+    <link rel="stylesheet" href="css/reveal.css">
+    <link rel="stylesheet" href="css/theme/night.css">
+
+    <!-- Theme used for syntax highlighting of code -->
+    <link rel="stylesheet" href="lib/css/zenburn.css">
+
+    <!-- Printing and PDF exports -->
+    <script>
+        var link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = window.location.search.match(/print-pdf/gi) ? 'css/print/pdf.css' : 'css/print/paper.css';
+        document.getElementsByTagName('head')[0].appendChild(link);
+    </script>
+    <style>
+        h3 {
+            font-size: 30px;
+        }
+    </style>
+</head>
+<body>
+<div class="reveal">
+    <div class="slides">
+        <section data-background-transition="zoom">
+            <section data-background-transition="zoom">
+                <h4 style="font-size: 50px;">Dynamically learning to learn Emerging Fake News Detection
+                </h4>
+                <hr>
+
+                <p style="position: relative;left: 20%;margin-top: 10%;">Yuhui Zuo</p>
+                <aside class="notes">
+                </aside>
+            </section>
+
+
+            <section data-background-transition="zoom">
+                <h5>Emergent Fake News Detection On social media</h5>
+                <hr>
+                <!--                <p class="fragment" style="font-size: 30px;"> China New Media Blue Book(2020)：New media has become the-->
+                <!--                    main channel for Chinese Internet users to obtain news information</p>-->
+                <p class="fragment" style="font-size: 30px;"> we specify the definition of fake news as news which is
+                    intentionally fabricated and can be verified as false.</p>
+                <p class="fragment" style="font-size: 30px;"> COVID-19/Presidential election/Stock market</p>
+                <img src="assets/falseinformation.jpg" style="width: 700px;height: 350px;">
+
+                <aside class="notes">
+                    添加来自新出现的事件的知识需要从头开始构建新的模型或继续微调模型，这对于现实世界的设置来说是不切实际的。
+                    Continual Learning
+                    尽管具有大量标签数据集的深度学习模型取得了成功，但在需要对突发事件进行假新闻检测的情况下，算法仍然会受到影响。
+                    由于新闻事件的领域转移[38]，针对过去事件训练的模型可能不能达到令人满意的性能，
+                    因此需要将来自突发事件的新知识添加到假新闻检测模型中。
+                    few-shot
+                    假新闻通常出现在新到的活动上，我们很难及时获得足够的帖子。在突发事件的早期阶段，我们通常只有少数相关的验证帖子。
+                    如何利用一小部分经过验证的帖子来使模型快速学习，以检测关于新到事件的假新闻，这是一个关键的挑战。
+                </aside>
+            </section>
+
+            <section data-background-transition="zoom">
+                <h5>Current Problem</h5>
+                <hr>
+                <p class="fragment" style="font-size: 25px;"> For the emerging early fake news, the effect is poor
+                    （few-shot learning）</p>
+                <p class="fragment" style="font-size: 30px;"> Challenge 1 : Early detection of fake news</p>
+                <p class="fragment" style="font-size: 25px;"> The model can not continue to adapt to the emerging false
+                    news</p>
+                <p class="fragment" style="font-size: 30px;"> Challenge 2 : Domain shift</p>
+                <!--                <p class="fragment" style="font-size: 30px;"> 单纯基于文本不再可行，需要结合图像，视频等信息</p>-->
+                <!--                <p class="fragment" style="font-size: 30px;"> 可解释有待研究</p>-->
+                <img class="fragment" src="assets/dynamic.jpg" style="width: 500px;height: 350px;">
+            </section>
+
+            <section data-background-transition="zoom">
+                <h5>non-stationary input data stream</h5>
+                <hr>
+                <p style="font-size: 30px;">
+                    \[\begin{aligned}
+                    T = (X_1,Y_1),(X_2,Y_2),...,(X_t,Y_t)
+                    \end{aligned} \]
+                </p>
+                <img src="assets/event_ratio.jpg" style="width: 700px;height: 500px;">
+            </section>
+
+            <!--            <section data-background-transition="zoom">-->
+            <!--                <h5>N-way M-event K-shot Q-query few-shot learning task</h5>-->
+            <!--                <hr>-->
+            <!--                <p class="fragment" style="font-size: 30px;">M represents the number of sampled events among-->
+            <!--                    E</p>-->
+            <!--                <p class="fragment" style="font-size: 30px;">-->
+            <!--                    \[\begin{aligned}-->
+            <!--                    E = E_p \cup E_s-->
+            <!--                    \end{aligned} \]-->
+            <!--                </p>-->
+            <!--                <p class="fragment" style="font-size: 30px;"> K表示每个标注的支持集(训练集)中的采样实例数</p>-->
+            <!--                <p class="fragment" style="font-size: 30px;"> Q表示每个标签的查询集(测试集)中的采样实例数。</p>-->
+            <!--                <aside class="notes">-->
+            <!--                    Ep是指过去发生的并且具有足够的标记实例用于训练的事件，Es是指那些突然发生的并且应该仅用少量的标记实例来预测的事件。-->
+            <!--                </aside>-->
+            <!--            </section>-->
+
+
+        </section>
+
+        <section data-background-transition="zoom">
+            <section data-background-transition="zoom">
+                <h2>Meta learning</h2>
+                <aside class="notes">
+                    https://blog.csdn.net/tiangcs/article/details/107868178
+                    元学习，"学习如何学习"，就像我们人类学习新知识往往从以往的经验出发而很少从头开始学习意愿，
+                    元学习以一种系统的、数据驱动的方式从先前的经验中学习，是一个可以用于描述所有基于其他先验任务经验来学习的方法概念。
+                </aside>
+            </section>
+
+            <section data-background-transition="zoom">
+                <h3>Learn to learn</h3>
+                <hr>
+                <img src="assets/metatask.jpg" style="width: 700px;height: 500px;">
+                <aside class="notes">
+                    meta learning的学习对象是task，而不是sample采样点
+                    同一数据多个目标任务，也可以是多个数据同一个目标任务
+                </aside>
+            </section>
+
+            <section data-background-transition="zoom">
+                <h5>Define a set of learning algorithm</h5>
+                <hr>
+                <p class="fragment" style="font-size: 30px;">Machine-learning &nbsp; : &nbsp;The ability to find a
+                    function f based on
+                    the data</p>
+                <p class="fragment" style="font-size: 30px;">Meta-learning &nbsp; : &nbsp; According to the data, the
+                    ability to find a
+                    function f, the ability of a function F</p>
+                <img class="fragment" src="assets/learning_algorithm.jpg" style="width: 700px;height: 350px;">
+                <aside class="notes">
+                    通过之前大量的相似任务的学习，给网络模型学习到一组不错的/有潜力的/比较万金油的参数，
+                    使用这组参数作为初始值，在特定任务上进行训练，只需要微调几次就可以在当前的新任务上收敛了
+
+                    learn to learn，即学会如何学习。听起来有点绕，大白话解释就是通过之前任务的学习使得模型具备一些先验知识或学习技巧，
+                    从而在面对新任务的学习时，不至于一无所知。
+                    这更接近于人的学习过程，我们人在过去的经历中，会不断地积累学习经验，使自己的知识积累变得越来越丰富，
+                    所以在面对新问题的时候，并不是一无所知的，可以自动借鉴之前相似问题的经验来解决新问题。
+                </aside>
+            </section>
+
+            <section data-background-transition="zoom">
+                <h5>MAML</h5>
+                <hr>
+                <img class="fragment" src="assets/MAML.jpg" style="width: 700px;height: 500px;">
+                <aside class="notes">
+                </aside>
+            </section>
+
+            <section data-background-transition="zoom">
+                <h5>MAML</h5>
+                <hr>
+                <!--                <p class="fragment" style="font-size: 30px;position: relative;left: -300px;">-->
+                <!--                    \[\begin{aligned}-->
+                <!--                    L(\theta) = \sum_{i=1}^N l_{i}(\theta_i')-->
+                <!--                    \end{aligned} \]-->
+                <!--                </p>-->
+                <!--                <p class="fragment" style="font-size: 30px;position: relative;left: -300px;">-->
+                <!--                    \[\begin{aligned}-->
+                <!--                    \theta_i' = \theta - \alpha \nabla_{\theta} l_{i}(\theta)-->
+                <!--                    \end{aligned} \]-->
+                <!--                </p>-->
+                <!--                <p class="fragment" style="font-size: 30px;position: relative;left: -250px;">-->
+                <!--                    \[\begin{aligned}-->
+                <!--                    \theta &= \theta - \beta \nabla_{\theta} L(\theta)\\ &= \theta-\beta\nabla_{\theta}\sum_{i=1}^N-->
+                <!--                    l_i(\theta_i')-->
+                <!--                    \end{aligned} \]-->
+                <!--                </p>-->
+
+                <!--                <img class="fragment" src="assets/MAML.jpg" style="width: 450px;height: 400px;position: relative;-->
+                <!--    left: 250px;top: -350px;">-->
+                <img src="assets/formal1.png" style="width: 800px;height: 450px;">
+                <aside class="notes">
+                </aside>
+            </section>
+
+            <section data-background-transition="zoom">
+                <h5>MAML</h5>
+                <hr>
+                <img src="assets/formal2.jpg" style="width: 800px;height: 550px;">
+                <aside class="notes">
+                </aside>
+            </section>
+
+            <section data-background-transition="zoom">
+                <h5>Reptile</h5>
+                <hr>
+                <p class="fragment" style="font-size: 30px;">
+                    \[\begin{aligned}
+                    \phi = \phi +\beta \frac{1}{N} \sum_{i=1}^N(\hat \theta_i-\phi)
+                    \end{aligned} \]
+                </p>
+                <p class="fragment" style="font-size: 30px;">
+                    \[\begin{aligned}
+                    \hat \phi_i =W &= \frac{1}{N} \sum_i^N \hat w = \frac{1}{N} \sum_i^N(\phi - \alpha\sum_j^k g_{ij}）
+                    = \phi + \beta (- \frac{\alpha}{N} \sum_i^N\sum_j^k g_ij)
+                    \end{aligned} \]
+                </p>
+                <p class="fragment" style="font-size: 30px;">
+                    \[\begin{aligned}
+                    W = \frac{1}{2} [(\phi - \alpha g_11 - \alpha g_12 - \alpha g_13 )+(\phi - \alpha g_21 - \alpha g_22
+                    - \alpha
+                    g_23 )]
+                    \end{aligned} \]
+                </p>
+                <p class="fragment" style="font-size: 30px;">
+                    \[\begin{aligned}
+                    \phi &= \phi + \beta(W- \phi)\\
+                    &=\phi - \frac{\beta\alpha}{2}[(g_11+g_12+g_13) + (g_21+g_22+g_23)]\\
+                    &=\phi - \beta\alpha(g_11+g_12+g_13) - (g_21+g_22+g_23)\\
+                    \end{aligned} \]
+                </p>
+
+                <!--                <img class="fragment" src="assets/reptile.jpg" style="width: 550px;height: 400px;">-->
+                <aside class="notes">
+                </aside>
+            </section>
+
+            <section data-background-transition="zoom">
+                <img src="assets/duibi.jpg" style="width: 900px;height: 550px;">
+                <aside class="notes">
+                </aside>
+            </section>
+            <section data-background-transition="zoom">
+                <img src="assets/exp2.jpg" style="width: 800px;height: 650px;">
+                <aside class="notes">
+                </aside>
+            </section>
+
+            <section data-background-transition="zoom">
+                <img src="assets/exp1.jpg" style="width: 800px;height: 650px;">
+                <aside class="notes">
+                </aside>
+            </section>
+
+
+        </section>
+
+
+        <section data-background-transition="zoom">
+            <section data-background-transition="zoom">
+                <h2>Lifelong learning or Continual learning</h2>
+            </section>
+
+
+            <section data-background-transition="zoom">
+                <h3>Continual learning</h3>
+                <hr>
+                <img src="assets/life%20Long.jpg" style="width: 650px;height: 450px;">
+
+                <aside class="notes">
+                    过去看过一堆task，但仍然可以在新的task上做的更好。不断在用同一个模型在学习
+                    https://blog.csdn.net/tiangcs/article/details/107868178
+                </aside>
+            </section>
+
+            <section data-background-transition="zoom">
+                <h3>Catastrophic forgetting</h3>
+                <hr>
+                <img src="assets/toy.jpg" style="width: 600px;height: 500px;">
+                <aside class="notes">
+                </aside>
+            </section>
+
+            <section data-background-transition="zoom">
+                <h3>Catastrophic forgetting</h3>
+                <hr>
+                <img src="assets/biby.jpg" style="width: 650px;height: 500px;">
+                <aside class="notes">
+                </aside>
+            </section>
+
+            <section data-background-transition="zoom">
+                <h3>Catastrophic forgetting</h3>
+                <hr>
+                <img src="assets/20.jpg" style="width: 750px;height: 500px;">
+                <aside class="notes">
+                </aside>
+            </section>
+
+            <section data-background-transition="zoom">
+                <h3>Method</h3>
+                <hr>
+                <img src="assets/lifemethod.jpg" style="width: 750px;height: 500px;">
+                <aside class="notes">
+                </aside>
+            </section>
+
+        </section>
+
+        <section data-background-transition="zoom">
+            <section data-background-transition="zoom">
+                <h2>Meta-Experience Replay</h2>
+            </section>
+
+            <section data-background-transition="zoom">
+                <h3>Method</h3>
+                <hr>
+                <img src="assets/mer.jpg" style="width: 700px;height: 400px;">
+                <aside class="notes">
+                </aside>
+            </section>
+        </section>
+
+
+        <section data-background-transition="zoom">
+            <section data-background-transition="zoom">
+                <h2>Evaluation</h2>
+            </section>
+
+
+            <section data-background-transition="zoom">
+                <h2>Evaluation metric</h2>
+                <hr>
+                <p class="fragment" style="font-size: 30px;">Retained Accuracy(RA) 是模型在训练结束时跨任务的平均准确率。</p>
+                <p class="fragment" style="font-size: 30px;">
+                    \[\begin{aligned}
+                    \frac{1}{T} \sum_{i=1}^T R_{T,i}
+                    \end{aligned} \]
+                </p>
+                <p class="fragment" style="font-size: 30px;">
+                    Backward transfer (BWT) 学习任务 t 对前一任务 k ≺ t 的性能的影响。当学习任务 t 时，提高了先前任务 k 的性能(存在正面的反向迁移)。
+                    当学习任务 t 会降低先前任务 k 的性能时(存在负面的反向迁移)。 越大意味着灾难性遗忘越严重。
+                </p>
+                <p class="fragment" style="font-size: 30px;">
+                    \[\begin{aligned}
+                    \frac{1}{T-1} \sum_{i=1}^{T-1} R_{T,i} - R_{i,i}
+                    \end{aligned} \]
+                </p>
+                <aside class="notes">
+                    Ri,j 是模型在观察任务 ti 的最后一个样本后对任务 tj 的测试分类准确率。
+                </aside>
+            </section>
+
+            <section data-background-transition="zoom">
+                <h2>Evaluation metric</h2>
+                <hr>
+                <p class="fragment" style="font-size: 30px;">
+                    Forwardtransfer(FWT) 学习任务t 对未来任务 k>t 的性能的影响。
+                </p>
+                <p class="fragment" style="font-size: 30px;">
+                    \[\begin{aligned}
+                    \frac{1}{T-1} \sum_{i=2}^{T-1} R_{i-1,i} - \hat b_i
+                    \end{aligned} \]
+                </p>
+                <aside class="notes">
+
+                </aside>
+            </section>
+
+
+        </section>
+
+        <section data-background-transition="zoom">
+
+
+            <section data-background-transition="zoom">
+                <h2>Thank you Bye</h2>
+                <aside class="notes">
+
+                </aside>
+            </section>
+        </section>
+    </div>
+</div>
+
+<script src="lib/js/head.min.js"></script>
+<script src="js/reveal.js"></script>
+<script src="plugin/math/math.js"></script>
+
+<script>
+    // More info about config & dependencies:
+    // - https://github.com/hakimel/reveal.js#configuration
+    // - https://github.com/hakimel/reveal.js#dependencies
+    Reveal.initialize({
+        math: {
+            mathjax: 'plugin/Mathjax-master/MathJax.js',
+            // mathjax: 'https://github.com/mathjax/mathjax/tree/2.7.8/MathJax.js',
+            // mathjax: 'https://cdn.jsdelivr.net/gh/mathjax/mathjax@2.7.8/MathJax.js',
+            // mathjax: 'https://cdn.mathjax.org/mathjax/latest/MathJax.js',
+            // config: 'TeX-AMS_CHTML', // 参考 http://docs.mathjax.org/en/latest/config-files.html
+            // config: 'TeX-AMS_HTML-full', // 参考 http://docs.mathjax.org/en/latest/config-files.html
+            config: 'TeX-AMS-MML_HTMLorMML', // 参考 http://docs.mathjax.org/en/latest/config-files.html
+            TeX: {Macros: {RR: "{\\bf R}"}}
+        },
+        dependencies: [
+            {src: 'plugin/markdown/marked.js'},
+            {src: 'plugin/markdown/markdown.js'},
+            {src: 'plugin/notes/notes.js', async: true},
+            {
+                src: 'plugin/highlight/highlight.js', async: true, callback: function () {
+                    hljs.initHighlightingOnLoad();
+                }
+            },
+            {src: 'plugin/math/math.js', async: true}
+        ]
+
+    });
+</script>
+</body>
+</html>
