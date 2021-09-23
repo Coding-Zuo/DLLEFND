@@ -295,6 +295,20 @@
                 <aside class="notes">
                 </aside>
             </section>
+            <section data-background-transition="zoom">
+                <h3>Elastic Weight Consolidation(EWC)</h3>
+                <hr>
+                <p class="fragment" style="font-size: 30px;">
+                    Some parameters in the model are important to the previous tasks. Only change the unimportant parameters.
+                </p>
+                <p class="fragment" style="font-size: 30px;">
+                    \[\begin{aligned}
+                    L'(\theta) = L(\theta)  + \lambda\sum_i b_i(\theta_i - \theta_i^b)^2
+                    \end{aligned} \]
+                </p>
+                <aside class="notes">
+                </aside>
+            </section>
 
         </section>
 
@@ -304,12 +318,38 @@
             </section>
 
             <section data-background-transition="zoom">
-                <h3>Method</h3>
+                <h3>MER</h3>
                 <hr>
+                <p class="fragment" style="font-size: 30px;">
+                    \[\begin{aligned}
+                    \frac{\partial L(x_i,y_i)}{\partial \theta} \cdot \frac{\partial L(x_j,y_j)}{\partial\theta}
+                    \end{aligned} \]
+                </p>
                 <img src="assets/mer.jpg" style="width: 700px;height: 400px;">
                 <aside class="notes">
                 </aside>
             </section>
+
+            <section data-background-transition="zoom">
+                <h3>MER</h3>
+                <hr>
+
+                <img src="assets/mer1.jpg" style="width: 400px;height: 550px;">
+                <aside class="notes">
+                </aside>
+            </section>
+
+<!--            <section data-background-transition="zoom">-->
+<!--                <h3>MER</h3>-->
+<!--                <hr>-->
+<!--                <p class="fragment" style="font-size: 30px;">-->
+<!--                    \[\begin{aligned}-->
+<!--                    \theta = argmin_{\theta} E_{[(x_{11},y_{11}),..., (x_{sk},y_{sk})] \sim M}[2\sum_{i=1}^s\sum_{j-1}^k[L(x_{ij},y_{ij}) - \sum_{q=1}^{i-1} \sum_{r=1}^{j-1} \alpha\frac{\partial L(x_{ij},y_{ij})}{\partial \theta} \cdot \frac{\partial  L(x_{qr},y_{qr})}{\partial\theta}] ]-->
+<!--                    \end{aligned} \]-->
+<!--                </p>-->
+<!--                <aside class="notes">-->
+<!--                </aside>-->
+<!--            </section>-->
         </section>
 
 
